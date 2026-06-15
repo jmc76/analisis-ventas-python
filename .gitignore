@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+
+# Archivos de salida generados
+output/charts/*.png
+output/reporte.html
+output/dashboard_v3.png
+output/kpi_daily.xlsx
+
+# Opcional: otros archivos temporales
+.DS_Store
+Thumbs.db
