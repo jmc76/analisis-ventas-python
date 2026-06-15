@@ -1,25 +1,31 @@
 # 📊 Dashboard automático de ventas con Python
 
-Proyecto de práctica enfocado en el desarrollo de un pipeline de datos que automatiza el análisis de ventas y la generación de insights de negocio.
+Pipeline de datos desarrollado en Python que automatiza el análisis de ventas, genera KPIs y construye un dashboard HTML con insights de negocio.
+
+---
+
+## 📊 Ejemplo de dashboard generado
+
+![Dashboard](assets/dashboard.png)
 
 ---
 
 ## 🚀 Descripción
 
-Este proyecto procesa datos de ventas diarios y genera automáticamente:
+Este proyecto procesa datos de ventas y genera automáticamente:
 
 - KPIs de negocio
-- visualizaciones
-- insights ejecutivos
-- dashboard HTML actualizado
+- Visualizaciones
+- Insights ejecutivos
+- Dashboard HTML
 
-Incluye además comparación de desempeño vs día anterior para monitorear tendencias de forma operativa.
+Incluye comparación vs día anterior para analizar evolución de performance.
 
 ---
 
 ## 🎯 Objetivo
 
-El objetivo es transformar datos en información accionable, automatizando el reporting y permitiendo un seguimiento continuo del negocio.
+Transformar datos en información accionable mediante automatización del reporting.
 
 ---
 
@@ -33,25 +39,11 @@ El objetivo es transformar datos en información accionable, automatizando el re
 
 ## 📈 Funcionalidades principales
 
-✔ Procesamiento automático de datos  
+✔ Procesamiento automático  
 ✔ Cálculo de KPIs  
 ✔ Generación de gráficos  
 ✔ Insights de negocio  
 ✔ Dashboard HTML dinámico  
-✔ Variación diaria de ventas  
-
----
-
-## 📊 Output
-
-El pipeline genera:
-
-- Dashboard HTML: `output/reporte.html`
-- Gráficos en `output/charts/`
-
-Ejemplo:
-
-output/dashboard_v3.png
 
 ---
 
