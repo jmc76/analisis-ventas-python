@@ -1,16 +1,29 @@
-# Python
+## Python
 __pycache__/
 *.pyc
 
-# Logs
+## Logs
 logs/
 
-# Archivos de salida generados
-output/charts/*.png
-output/reporte.html
-output/dashboard_v3.png
-output/kpi_daily.xlsx
+## Output generado por el pipeline
+output/
+!output/.gitkeep
 
-# Opcional: otros archivos temporales
+## Raw diarios generados localmente
+data/raw/ventas_*.csv
+
+## Backups y archivos auxiliares en processed
+data/processed/*backup*
+data/processed/*_backup_*
+data/processed/*.bak
+
+## Archivos temporales del sistema
 .DS_Store
 Thumbs.db
+
+## Swap / editores
+*.swp
+*.swo
+
+## Jupyter / checkpoints
+.ipynb_checkpoints/
