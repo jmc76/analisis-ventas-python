@@ -1,32 +1,37 @@
 import pandas as pd
 
-# Cargar histórico real
-df = pd.read_csv("data/processed/ventas_historico.csv")
-df["fecha"] = pd.to_datetime(df["fecha"])
+def generar_presupuesto():
 
-# Ventas reales por día
-ventas_diarias = df.groupby("fecha", as_index=False)["ventas"].sum()
-ventas_diarias = ventas_diarias.rename(columns={"ventas": "ventas_reales"})
+    # Cargar histórico real
+    df = pd.read_csv("data/processed/ventas_historico.csv")
+    df["fecha"] = pd.to_datetime(df["fecha"])
 
-# Promedio móvil de 7 días (sin usar el mismo día)
-ventas_diarias["venta_presupuestada"] = (
-    ventas_diarias["ventas_reales"]
-    .shift(1)
-    .rolling(window=7, min_periods=3)
-    .mean()
-)
+    # Ventas reales por día
+    ventas_diarias = df.groupby("fecha", as_index=False)["ventas"].sum()
+    ventas_diarias = ventas_diarias.rename(columns={"ventas": "ventas_reales"})
 
-# Rellenar valores iniciales con promedio general
-promedio_general = ventas_diarias["ventas_reales"].mean()
-ventas_diarias["venta_presupuestada"] = ventas_diarias["venta_presupuestada"].fillna(promedio_general)
+    # Promedio móvil de 7 días (sin usar el mismo día)
+    ventas_diarias["venta_presupuestada"] = (
+        ventas_diarias["ventas_reales"]
+        .shift(1)
+        .rolling(window=7, min_periods=3)
+        .mean()
+    )
 
-# Redondear valores
-ventas_diarias["venta_presupuestada"] = ventas_diarias["venta_presupuestada"].round(0)
+    # Rellenar valores iniciales con promedio general
+    promedio_general = ventas_diarias["ventas_reales"].mean()
+    ventas_diarias["venta_presupuestada"] = ventas_diarias["venta_presupuestada"].fillna(promedio_general)
 
-# Dejar columnas finales
-df_final = ventas_diarias[["fecha", "venta_presupuestada"]]
+    # Redondear valores
+    ventas_diarias["venta_presupuestada"] = ventas_diarias["venta_presupuestada"].round(0)
 
-# Guardar CSV
-df_final.to_csv("data/processed/presupuesto_ventas.csv", index=False)
+    # Dejar columnas finales
+    df_final = ventas_diarias[["fecha", "venta_presupuestada"]]
 
-print("✅ Presupuesto generado con promedio móvil de 7 días")
+    # Guardar CSV
+    df_final.to_csv("data/processed/presupuesto_ventas.csv", index=False)
+
+    print("✅ Presupuesto generado con promedio móvil de 7 días")
+
+if __name__ == "__main__":
+    generar_presupuesto()

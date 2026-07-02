@@ -15,6 +15,7 @@ from kpi import agregar_kpis_vs_promedio, resumen_kpis
 from logging_setup import get_logger
 from reporting import generar_graficas_y_insights
 from email_report import generar_reporte_html
+from generar_presupuesto import generar_presupuesto
 
 RAW_DIR = "data/raw"
 HIST_PATH = "data/processed/ventas_historico.csv"
@@ -173,6 +174,12 @@ def calcular_ventas_vs_presupuesto(df_historico, df_presupuesto):
 def main():
     logger = get_logger("update_pipeline", "logs/pipeline.log")
     os.makedirs("output", exist_ok=True)
+
+    
+    logger.info("🔄 Generando presupuesto dinámico")
+    generar_presupuesto()
+    logger.info("✅ Presupuesto actualizado")
+
 
     # 1) listar archivos entrantes
     archivos = listar_archivos_raw()
