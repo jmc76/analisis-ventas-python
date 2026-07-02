@@ -18,8 +18,13 @@ from email_report import generar_reporte_html
 
 RAW_DIR = "data/raw"
 HIST_PATH = "data/processed/ventas_historico.csv"
+PRESUP_PATH = "data/processed/presupuesto_ventas.csv"
+
 OUT_XLSX = "output/kpi_daily.xlsx"
 OUT_CSV = "output/kpi_daily.csv"
+OUT_MODELO = "output/modelo_dashboard.csv"
+OUT_VS_PRESUP = "output/ventas_vs_presupuesto.csv"
+OUT_RESUMEN_PRESUP = "output/resumen_presupuesto.csv"
 
 
 def cargar_historico():
@@ -52,6 +57,14 @@ def cargar_raw(archivos):
     df = pd.concat(frames, ignore_index=True)
     df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
     return df
+
+
+def cargar_presupuesto():
+    if os.path.exists(PRESUP_PATH):
+        df = pd.read_csv(PRESUP_PATH)
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        return df
+    return pd.DataFrame(columns=["fecha", "venta_presupuestada"])
 
 
 def reemplazar_fechas_en_historico(hist, raw):
@@ -97,6 +110,64 @@ def warning_volumen_por_fecha(df, logger, umbral=250):
         logger.warning("⚠️ Fechas con volumen de filas superior al umbral:")
         for fecha, cantidad in fechas_altas.items():
             logger.warning(f"   - {fecha.strftime('%Y-%m-%d')}: {cantidad} filas")
+
+
+def calcular_ventas_vs_presupuesto(df_historico, df_presupuesto):
+    """
+    Agrega ventas reales por día y las compara contra el presupuesto diario.
+    Devuelve:
+      - df_vs_presup: tabla diaria con ventas, presupuesto, desvío y desvío %
+      - resumen: dict con métricas de negocio
+    """
+    if df_historico.empty:
+        return pd.DataFrame(), {}
+
+    # ventas reales por día
+    ventas_diarias = (
+        df_historico.groupby("fecha", as_index=False)["ventas"]
+        .sum()
+        .rename(columns={"ventas": "ventas_reales"})
+    )
+
+    if df_presupuesto.empty:
+        df_vs_presup = ventas_diarias.copy()
+        df_vs_presup["venta_presupuestada"] = pd.NA
+        df_vs_presup["desvio"] = pd.NA
+        df_vs_presup["desvio_pct"] = pd.NA
+        return df_vs_presup, {}
+
+    # merge diario
+    df_vs_presup = ventas_diarias.merge(df_presupuesto, on="fecha", how="left")
+
+    # cálculos
+    df_vs_presup["desvio"] = df_vs_presup["ventas_reales"] - df_vs_presup["venta_presupuestada"]
+
+    df_vs_presup["desvio_pct"] = df_vs_presup["desvio"] / df_vs_presup["venta_presupuestada"]
+    df_vs_presup.loc[df_vs_presup["venta_presupuestada"].isna(), "desvio_pct"] = pd.NA
+    df_vs_presup.loc[df_vs_presup["venta_presupuestada"] == 0, "desvio_pct"] = pd.NA
+
+    # resumen
+    df_valid = df_vs_presup.dropna(subset=["venta_presupuestada"]).copy()
+
+    if df_valid.empty:
+        return df_vs_presup, {}
+
+    peor_dia = df_valid.sort_values("desvio", ascending=True).iloc[0]
+    mejor_dia = df_valid.sort_values("desvio", ascending=False).iloc[0]
+
+    resumen = {
+        "ventas_reales_total": float(df_valid["ventas_reales"].sum()),
+        "venta_presupuestada_total": float(df_valid["venta_presupuestada"].sum()),
+        "desvio_total": float(df_valid["desvio"].sum()),
+        "desvio_promedio": float(df_valid["desvio"].mean()),
+        "pct_dias_sobre_presupuesto": float((df_valid["desvio"] > 0).mean() * 100),
+        "mejor_dia_fecha": mejor_dia["fecha"].strftime("%Y-%m-%d"),
+        "mejor_dia_desvio": float(mejor_dia["desvio"]),
+        "peor_dia_fecha": peor_dia["fecha"].strftime("%Y-%m-%d"),
+        "peor_dia_desvio": float(peor_dia["desvio"]),
+    }
+
+    return df_vs_presup, resumen
 
 
 def main():
@@ -148,7 +219,7 @@ def main():
     # warning preventivo de volúmenes anómalos
     warning_volumen_por_fecha(combinado, logger, umbral=250)
 
-    # 5) calcular KPI
+    # 5) calcular KPI base
     combinado = agregar_kpis_vs_promedio(combinado)
 
     # validar columnas post KPI
@@ -177,34 +248,70 @@ def main():
     ]
 
     modelo = combinado[cols_modelo].copy()
-    modelo.to_csv("output/modelo_dashboard.csv", index=False)
+    modelo.to_csv(OUT_MODELO, index=False)
     logger.info("✅ modelo_dashboard.csv actualizado para Power BI")
     logger.debug(f"Keys disponibles en res: {list(res.keys())}")
 
-    # 9) generar gráficas + insights
+    # 9) integración ventas vs presupuesto
+    presupuesto = cargar_presupuesto()
+
+    if presupuesto.empty:
+        logger.warning(f"⚠️ No se encontró presupuesto en {PRESUP_PATH}. Se omite análisis vs presupuesto.")
+    else:
+        validar_no_vacio(presupuesto, "PRESUPUESTO")
+        validar_columnas(presupuesto, ["fecha", "venta_presupuestada"], "PRESUPUESTO")
+
+        presupuesto["venta_presupuestada"] = pd.to_numeric(
+            presupuesto["venta_presupuestada"], errors="coerce"
+        )
+
+        df_vs_presup, resumen_presup = calcular_ventas_vs_presupuesto(
+            combinado[["fecha", "region", "producto", "ventas"]].copy(),
+            presupuesto[["fecha", "venta_presupuestada"]].copy()
+        )
+
+        df_vs_presup.to_csv(OUT_VS_PRESUP, index=False)
+        logger.info(f"✅ ventas_vs_presupuesto.csv generado en {OUT_VS_PRESUP}")
+
+        if resumen_presup:
+            resumen_presup_df = pd.DataFrame([resumen_presup])
+            resumen_presup_df.to_csv(OUT_RESUMEN_PRESUP, index=False)
+            logger.info(f"✅ resumen_presupuesto.csv generado en {OUT_RESUMEN_PRESUP}")
+
+            logger.info(
+                "📊 Presupuesto | "
+                f"Desvío promedio: {resumen_presup['desvio_promedio']:.2f} | "
+                f"% días sobre presupuesto: {resumen_presup['pct_dias_sobre_presupuesto']:.2f}% | "
+                f"Mejor día: {resumen_presup['mejor_dia_fecha']} ({resumen_presup['mejor_dia_desvio']:.2f}) | "
+                f"Peor día: {resumen_presup['peor_dia_fecha']} ({resumen_presup['peor_dia_desvio']:.2f})"
+            )
+        else:
+            logger.warning("⚠️ No se pudo generar resumen de presupuesto por falta de datos válidos.")
+
+    # 10) generar gráficas + insights
     insights, chart_paths = generar_graficas_y_insights(
         historico_path=HIST_PATH,
         output_dir="output/charts"
     )
     logger.info("✅ Gráficas e insights generados")
 
-    # 10) generar reporte HTML
+    # 11) generar reporte HTML
     try:
         generar_reporte_html(insights, chart_paths)
         logger.info("✅ Reporte HTML generado correctamente")
     except Exception as e:
         logger.error(f"❌ Error generando HTML: {e}")
 
-    # 11) exportar KPIs adicionales
+    # 12) exportar KPIs adicionales
     res["por_producto"].to_csv(OUT_CSV)
 
     with pd.ExcelWriter(OUT_XLSX) as writer:
-        res["por_producto"].to_excel(writer, sheet_name="KPI_Producto")
-        res["por_region"].to_excel(writer, sheet_name="KPI_Region")
-        res["pct_sobre_prod"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Prod")
-        res["pct_sobre_reg"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Region")
+        res["por_producto"].to_excel(writer, sheet_name="KPI_Producto", index=True)
+        res["por_region"].to_excel(writer, sheet_name="KPI_Region", index=True)
+        res["pct_sobre_prod"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Prod", index=True)
+        res["pct_sobre_reg"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Region", index=True)
 
-    # 12) fin del pipeline
+    # 13) fin del pipeline
     logger.info("✅ Pipeline OK: histórico actualizado y reportes generados en output/")
 
 
