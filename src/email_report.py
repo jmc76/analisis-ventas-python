@@ -1,7 +1,11 @@
 import os
 
-
-def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html"):
+def generar_reporte_html(
+    insights,
+    chart_paths,
+    resumen_presup=None,
+    output_file="output/reporte.html"
+):
     """
     Genera un dashboard HTML con insights y gráficos.
     """
@@ -44,6 +48,22 @@ def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html
     # ✅ mejor performance
     best_perf_html = ""
     best_perf_card = ""
+    presupuesto_card = ""
+
+    if resumen_presup:
+
+        presupuesto_card = f"""
+        <div class="card">
+            <div class="kpi-title">Cumplimiento presupuesto</div>
+            <div class="kpi-value">
+                {resumen_presup['pct_dias_sobre_presupuesto']:.1f}%
+            </div>
+            <div class="kpi-sub">
+                Días sobre objetivo
+            </div>
+        </div>
+        """
+           
 
     if insights.get("best_perf_producto") is not None:
         best_perf_html = f"""
@@ -68,6 +88,29 @@ def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html
             {img_tag(chart_paths['perf_producto'])}
         </div>
         """
+
+    
+    vs_presup_30d_html = ""
+
+    if chart_paths.get("ventas_vs_presupuesto_30d"):
+        vs_presup_30d_html = f"""
+        <div class="panel-wide">
+            <h3>Ventas vs Presupuesto (Últimos 30 días)</h3>
+            {img_tag(chart_paths['ventas_vs_presupuesto_30d'])}
+        </div>
+        """
+    
+    vs_presup_mensual_html = ""
+
+    if chart_paths.get("ventas_vs_presupuesto_mensual"):
+        vs_presup_mensual_html = f"""
+        <div class="panel-wide">
+            <h3>Ventas vs Presupuesto Mensual</h3>
+            {img_tag(chart_paths['ventas_vs_presupuesto_mensual'])}
+        </div>
+        """
+
+
 
     # ✅ HTML
     html = f"""
@@ -153,6 +196,15 @@ def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html
                 box-shadow: 0 3px 8px rgba(0,0,0,0.08);
             }}
 
+            .panel-wide {{
+                background: white;
+                padding: 16px;
+                border-radius: 10px;   
+                box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+
+                grid-column: 1 / -1;
+            }}
+
             h3 {{
                 margin-top: 0;
             }}
@@ -192,6 +244,7 @@ def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html
             </div>
 
             {best_perf_card}
+            {presupuesto_card}
 
         </div>
 
@@ -220,6 +273,10 @@ def generar_reporte_html(insights, chart_paths, output_file="output/reporte.html
             </div>
 
             {perf_img_html}
+
+            {vs_presup_30d_html}
+
+            {vs_presup_mensual_html}
 
         </div>
 

@@ -304,11 +304,15 @@ def main():
 
     # 11) generar reporte HTML
     try:
-        generar_reporte_html(insights, chart_paths)
+        generar_reporte_html(
+            insights,
+            chart_paths,
+            resumen_presup
+        )
         logger.info("✅ Reporte HTML generado correctamente")
     except Exception as e:
         logger.error(f"❌ Error generando HTML: {e}")
-
+    
     # 12) exportar KPIs adicionales
     res["por_producto"].to_csv(OUT_CSV)
 

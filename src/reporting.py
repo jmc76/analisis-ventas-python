@@ -1,6 +1,7 @@
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter, PercentFormatter
 
 def generar_graficas_y_insights(
     historico_path="data/processed/ventas_historico.csv",
@@ -17,6 +18,15 @@ def generar_graficas_y_insights(
     df["ventas"] = pd.to_numeric(df["ventas"], errors="coerce")
     df = df.dropna(subset=["fecha", "ventas", "producto", "region"])
 
+    # Archivo de comparación contra presupuesto
+    presup_path = Path("output/ventas_vs_presupuesto.csv")
+
+    df_presup = None
+
+    if presup_path.exists():
+        df_presup = pd.read_csv(presup_path)
+        df_presup["fecha"] = pd.to_datetime(df_presup["fecha"])
+
     # Agregaciones
     ventas_producto = df.groupby("producto")["ventas"].sum().sort_values(ascending=False)
     ventas_region = df.groupby("region")["ventas"].sum().sort_values(ascending=False)
@@ -32,11 +42,29 @@ def generar_graficas_y_insights(
 
     # ---------- Gráfica 1: Ventas por producto ----------
     plt.figure(figsize=(8, 5))
-    ventas_producto.plot(kind="bar", color="#2E86AB")
+    
+    ax = ventas_producto.plot(
+        kind="bar",
+        color="#2E86AB"
+    )
+
+    for i, v in enumerate(ventas_producto.values):
+        ax.text(
+            i,
+            v * 1.01,
+            f"{v/1000:,.0f}K",
+            ha="center",
+            fontsize=8
+        )
+
+    plt.grid(axis="y", alpha=0.3)
     plt.title("Ventas totales por producto")
     plt.xlabel("Producto")
     plt.ylabel("Ventas")
     plt.xticks(rotation=0)
+    ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda x, pos: f"{x/1_000_000:.1f}M")
+    )
     plt.tight_layout()
     path_ventas_producto = output_path / "ventas_producto.png"
     plt.savefig(path_ventas_producto, dpi=150)
@@ -44,11 +72,33 @@ def generar_graficas_y_insights(
 
     # ---------- Gráfica 2: Ventas por región ----------
     plt.figure(figsize=(8, 5))
-    ventas_region.plot(kind="bar", color="#F18F01")
+    
+    ax = ventas_region.plot(
+        kind="bar",
+        color="#F18F01"
+    )
+
+    for i, v in enumerate(ventas_region.values):
+        ax.text(
+            i,
+            v * 1.01,
+            f"{v/1000:,.0f}K",
+            ha="center",
+            fontsize=8
+        )
+
+
     plt.title("Ventas totales por región")
     plt.xlabel("Región")
     plt.ylabel("Ventas")
     plt.xticks(rotation=0)
+    ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda x, pos: f"{x/1_000_000:.1f}M")
+    )
+    plt.grid(
+        axis="y",
+        alpha=0.3
+    )
     plt.tight_layout()
     path_ventas_region = output_path / "ventas_region.png"
     plt.savefig(path_ventas_region, dpi=150)
@@ -56,22 +106,224 @@ def generar_graficas_y_insights(
 
     # ---------- Gráfica 3: Tendencia diaria ----------
     plt.figure(figsize=(10, 5))
-    ventas_dia.plot(color="#6A994E")
+
+    ax = ventas_dia.plot(
+        color="#6A994E",
+        linewidth=2
+    )
+
+    # Destacar último día
+    ultimo_dia = ventas_dia.index[-1]
+    ultima_venta = ventas_dia.iloc[-1]
+
+    plt.scatter(
+        ultimo_dia,
+        ultima_venta,
+        color="red",
+        s=60,
+        zorder=5
+    )
+
+    plt.annotate(
+        f"{ultima_venta/1000:,.0f}K",
+        (ultimo_dia, ultima_venta),
+        xytext=(10, 10),
+        textcoords="offset points",
+        fontsize=8
+    )
+
     plt.title("Evolución diaria de ventas")
     plt.xlabel("Fecha")
     plt.ylabel("Ventas")
+
+    ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda x, pos: f"{x/1000:,.0f}K")
+    )
+
+    plt.xticks(rotation=45)
+
+    plt.grid(
+        axis="y",
+        alpha=0.3
+    )
+
     plt.tight_layout()
+
     path_ventas_dia = output_path / "ventas_dia.png"
+
     plt.savefig(path_ventas_dia, dpi=150)
     plt.close()
 
+    # ---------- Gráfica 4: Ventas vs Presupuesto (últimos 30 días) ----------
+
+    path_vs_presup_30d = None
+
+    if df_presup is not None:
+
+        ultimos_30 = df_presup.sort_values("fecha").tail(30)
+
+        plt.figure(figsize=(10, 5))
+
+        plt.plot(
+            ultimos_30["fecha"],
+            ultimos_30["ventas_reales"],
+            label="Ventas reales",
+            linewidth=2
+        )
+
+        plt.plot(
+            ultimos_30["fecha"],
+            ultimos_30["venta_presupuestada"],
+            label="Presupuesto",
+            linestyle="--",
+            linewidth=2
+        )
+
+        plt.title("Ventas reales vs presupuesto (últimos 30 días)")
+        plt.xlabel("Fecha")
+        plt.ylabel("Ventas")
+        plt.legend()
+        
+        
+        ax = plt.gca()
+
+        ax.yaxis.set_major_formatter(
+            FuncFormatter(lambda x, pos: f"{x/1000:,.0f}K")
+        )
+
+        plt.xticks(rotation=45)
+
+        plt.grid(
+            axis="y",
+            alpha=0.3
+        )
+
+        plt.tight_layout()
+
+        path_vs_presup_30d = output_path / "ventas_vs_presupuesto_30d.png"
+
+        plt.savefig(path_vs_presup_30d, dpi=150)
+        plt.close()
+      
+    # ---------- Gráfica 5: Ventas vs Presupuesto mensual ----------
+
+    path_vs_presup_mensual = None
+
+    if df_presup is not None:
+
+        mensual = df_presup.copy()
+
+        mensual["mes"] = mensual["fecha"].dt.to_period("M")
+
+        mensual = (
+            mensual.groupby("mes")
+            .agg(
+                ventas_reales=("ventas_reales", "sum"),
+                venta_presupuestada=("venta_presupuestada", "sum")
+            )
+            .reset_index()
+        )
+
+        mensual["mes"] = mensual["mes"].astype(str)
+
+        plt.figure(figsize=(10, 5))
+
+        x = range(len(mensual))
+        ancho = 0.4
+
+        plt.bar(
+            [i - ancho/2 for i in x],
+            mensual["ventas_reales"],
+            width=ancho,
+            label="Ventas reales",
+            color="#2E86AB"
+        )
+          
+        for i, v in enumerate(mensual["ventas_reales"]):
+            plt.text(
+                i - ancho/2,
+                v,
+                f"{v/1000:,.0f}K",
+                ha="center",
+                fontsize=8
+            )
+
+
+        plt.bar(
+            [i + ancho/2 for i in x],
+            mensual["venta_presupuestada"],
+            width=ancho,
+            label="Presupuesto",
+            color="#F18F01"
+        )
+          
+        for i, v in enumerate(mensual["venta_presupuestada"]):
+            plt.text(
+                i + ancho/2,
+                v,
+                f"{v/1000:,.0f}K",
+                ha="center",
+                fontsize=8
+            )
+
+
+        plt.xticks(x, mensual["mes"], rotation=45)
+        plt.title("Ventas reales vs presupuesto mensual")
+        plt.ylabel("Ventas")
+
+        
+        ax = plt.gca()
+
+        ax.yaxis.set_major_formatter(
+            FuncFormatter(lambda x, pos: f"{x/1_000_000:.1f}M")
+        )
+
+        plt.grid(
+            axis="y",
+            alpha=0.3
+        )
+
+        plt.legend()
+        plt.tight_layout()
+
+        path_vs_presup_mensual = (
+            output_path / "ventas_vs_presupuesto_mensual.png"
+        )
+
+        plt.savefig(path_vs_presup_mensual, dpi=150)
+        plt.close()
+    
     # ---------- Gráfica 4: % sobre promedio ----------
     path_perf_producto = None
     if pct_sobre_prod is not None:
         # Convertimos booleanos a proporción si vinieran como bool directo
         plt.figure(figsize=(8, 5))
-        pct_sobre_prod.plot(kind="bar", color="#9B5DE5")
-        plt.title("% de ventas sobre el promedio por producto")
+        
+        ax = pct_sobre_prod.plot(
+            kind="bar",
+            color="#9B5DE5"
+        )
+
+        for i, v in enumerate(pct_sobre_prod.values):
+
+            ax.text(
+                i,
+                v * 1.01,
+                f"{v:.1%}",
+                ha="center",
+                fontsize=8
+            )
+        
+        ax.yaxis.set_major_formatter(
+            PercentFormatter(1)
+        )
+
+        plt.grid(
+            axis="y",
+            alpha=0.3
+        )
+
+        plt.title("Ranking de productos (% sobre promedio)")
         plt.xlabel("Producto")
         plt.ylabel("Proporción")
         plt.xticks(rotation=0)
@@ -110,6 +362,19 @@ def generar_graficas_y_insights(
         insights["best_perf_val"] = float(pct_sobre_prod.iloc[0])
 
     chart_paths = {
+
+        "ventas_vs_presupuesto_30d": (
+            str(path_vs_presup_30d)
+            if path_vs_presup_30d
+            else None
+        ),
+
+        "ventas_vs_presupuesto_mensual": (
+            str(path_vs_presup_mensual)
+            if path_vs_presup_mensual
+            else None
+        ),
+
         "ventas_producto": str(path_ventas_producto),
         "ventas_region": str(path_ventas_region),
         "ventas_dia": str(path_ventas_dia),
