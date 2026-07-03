@@ -1,4 +1,5 @@
 import os
+from turtle import position
 
 def generar_reporte_html(
     insights,
@@ -149,6 +150,11 @@ def generar_reporte_html(
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 20px;
                 margin-bottom: 30px;
+
+                background: #f4f6f9;
+
+                padding-top: 10px;
+                padding-bottom: 10px;
             }}
 
             .card {{
@@ -208,6 +214,20 @@ def generar_reporte_html(
             h3 {{
                 margin-top: 0;
             }}
+
+            .sticky-header {{
+                position: sticky;
+                top: 0;
+                z-index: 200;
+
+                background: #f4f6f9;
+
+                padding-top: 10px;
+                padding-bottom: 10px;
+
+                box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            }}
+
         </style>
 
     </head>
@@ -216,13 +236,15 @@ def generar_reporte_html(
 
     <div class="container">
 
-        <div class="title">📊 Dashboard de ventas</div>
-        <div class="subtitle">
-            Última fecha: {insights['ultimo_dia'].date()}
-        </div>
+        <div class="sticky-header">
 
-        <!-- KPIs -->
-        <div class="grid-kpi">
+            <div class="title">📊 Dashboard de ventas</div>
+            <div class="subtitle">
+                Última fecha: {insights['ultimo_dia'].date()}
+            </div>
+        
+            <!-- KPIs -->
+            <div class="grid-kpi">
 
             <div class="card">
                 <div class="kpi-title">Producto líder</div>
@@ -246,7 +268,9 @@ def generar_reporte_html(
             {best_perf_card}
             {presupuesto_card}
 
-        </div>
+            </div>  <!-- cierre grid-kpi -->
+
+        </div>      <!-- cierre sticky-header -->
 
         <!-- Insight -->
         <div class="insight">
