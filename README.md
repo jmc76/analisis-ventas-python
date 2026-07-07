@@ -116,16 +116,24 @@ analisis-ventas-python/
 
 ## ▶️ Cómo ejecutar el proyecto
 
-### 1. Generar presupuesto
+Ejecutar el pipeline completo:
 
 ```bash
-python src/generar_presupuesto.py
-
 python src/update_pipeline.py
+```
+
+El proceso incluye:
+
+- Generación automática del presupuesto dinámico
+- Actualización del histórico
+- Cálculo de KPIs
+- Generación de gráficos e insights
+- Creación del dashboard HTML
+```
 
 ## 📣 Autor
 
 **Juan Manuel Cintado**
 
-- 📧 Email: juanmanuel.cint@gmail.com  
-- 🔗 LinkedIn: https://www.linkedin.com/in/jmc76/
+- 📧 Email: juanmanuel.cint@gmail.com
+- 🔗 LinkedIn: [Juan Manuel Cintado](https://www.linkedin.com/in/jmc76/)
