@@ -136,4 +136,5 @@ El proceso incluye:
 **Juan Manuel Cintado**
 
 - 📧 Email: juanmanuel.cint@gmail.com
-- 🔗 LinkedIn: [Juan Manuel Cintado](https://www.linkedin.com/in/jmc76/)
+- 🔗 LinkedIn: https://www.linkedin.com/in/jmc76/
+
