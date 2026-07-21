@@ -236,6 +236,16 @@ def generar_resumen_financiero(df):
 
     )
 
+    cash_conversion_rate = (
+
+        cobrado / facturado * 100
+
+        if facturado > 0
+
+        else 0
+
+    )
+
     # ==========================
     # DSO (Days Sales Outstanding)
     # ==========================
@@ -269,6 +279,8 @@ def generar_resumen_financiero(df):
         "incobrable_total": incobrable,
 
         "pct_recuperacion": pct_recuperacion,
+
+        "cash_conversion_rate": cash_conversion_rate,
 
         "pct_incobrabilidad": pct_incobrabilidad,
 
