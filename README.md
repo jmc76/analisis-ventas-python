@@ -1,140 +1,214 @@
-# 📊 Análisis de Ventas con Python + Presupuesto Dinámico
+# Business Analytics & FP&A Platform with Python
 
-Pipeline de datos desarrollado en Python que automatiza el procesamiento de ventas, el cálculo de KPIs y el análisis de desempeño contra un presupuesto dinámico.
+Proyecto desarrollado en Python para automatizar procesos de Business Analytics y Financial Planning & Analysis (FP&A).
 
----
-
-## 📊 Ejemplo de dashboard generado
-
-![Dashboard](assets/dashboard.png)
+La solución integra analítica comercial, presupuestación, flujo de fondos, forecasting financiero, análisis de rentabilidad y dashboards ejecutivos con actualización automática diaria.
 
 ---
 
-## 🚀 Descripción
+## Objetivos
 
-Este proyecto implementa un pipeline de datos end-to-end para el análisis de ventas.
-
-Incluye:
-
-- Ingesta de datos diarios
-- Validaciones de calidad
-- Consolidación de histórico
-- Cálculo de KPIs
-- Generación de reportes y visualizaciones
-- Comparación de ventas reales vs presupuesto
-
-Además, incorpora un análisis en notebook orientado a negocio, utilizando un dashboard que permite interpretar desvíos y performance diaria.
+- Automatizar la actualización diaria de ventas.
+- Generar presupuestos dinámicos.
+- Comparar resultados reales contra presupuesto.
+- Gestionar cuentas por cobrar.
+- Analizar flujo de caja.
+- Generar forecast financiero.
+- Medir rentabilidad y márgenes.
+- Publicar dashboards ejecutivos para negocio y finanzas.
 
 ---
 
-## 🎯 Objetivo
+## Arquitectura
 
-Transformar datos en información accionable mediante automatización del reporting y análisis de desempeño comercial.
+```text
+Raw Sales Data
+        ↓
+Update Pipeline
+        ↓
+Historical Sales
+        ↓
+Budget Generation
+        ↓
+Dynamic Expenses
+        ↓
+Financial Module
+        ↓
+Accounts Receivable
+        ↓
+Cash Flow
+        ↓
+Cash Projection
+        ↓
+Forecast Scenarios
+        ↓
+P&L Statement
+        ↓
+Executive Dashboards
+```
 
 ---
 
-## ⚙️ Tecnologías utilizadas
+## Revenue Analytics
+
+### Funcionalidades
+
+- Ventas por producto
+- Ventas por región
+- KPIs comerciales
+- Promedios históricos
+- Presupuesto dinámico
+- Budget vs Actual
+- Análisis de desvíos
+- Dashboard Comercial
+
+### Archivos generados
+
+```text
+ventas_historico.csv
+presupuesto_ventas.csv
+ventas_vs_presupuesto.csv
+resumen_presupuesto.csv
+modelo_dashboard.csv
+```
+
+---
+
+## Financial Planning & Analysis (FP&A)
+
+### Accounts Receivable
+
+- Condiciones de pago simuladas
+- Recovery Rate
+- Cash Conversion Rate
+- DSO (Days Sales Outstanding)
+- Aging de cuentas por cobrar
+
+### Cash Management
+
+- Cobranzas proyectadas
+- Flujo de caja
+- Caja proyectada
+- Burn Rate
+- Cash Runway
+
+### Forecasting
+
+- Escenario Pesimista
+- Escenario Base
+- Escenario Optimista
+
+### Profitability
+
+- Margen de Contribución
+- EBITDA
+- Resultado Neto
+- Estado de Resultados (P&L)
+
+### Dashboard FP&A
+
+- KPIs financieros
+- Aging
+- Forecast
+- Profitability
+- Cash Management
+- Gráfico de Evolución de Caja Proyectada
+
+### Archivos generados
+
+```text
+ventas_historico_finanzas.csv
+cobranzas_proyectadas.csv
+flujo_caja.csv
+caja_proyectada.csv
+forecast_caja.csv
+estado_resultados.csv
+resumen_financiero.csv
+kpis_tesoreria.csv
+dashboard_fpa.html
+```
+
+---
+
+## Model Improvement
+
+Durante el desarrollo del módulo FP&A se detectó una inconsistencia financiera.
+
+Inicialmente los gastos variables permanecían constantes mientras las ventas crecían diariamente. Esto generaba márgenes y resultados artificialmente elevados.
+
+Para resolverlo se rediseñó la generación de gastos variables para que conceptos como:
+
+- Marketing
+- Logística
+- Comisiones
+- Packaging
+
+evolucionen automáticamente en función de las ventas.
+
+Esta mejora permitió obtener indicadores financieros más consistentes y realistas para forecasting, cash flow y análisis de rentabilidad.
+
+---
+
+## Automatización
+
+Todo el proceso se encuentra automatizado mediante:
 
 - Python
-- pandas
-- matplotlib
-- Jupyter Notebook
-- VS Code
+- Windows Task Scheduler
 
----
+La ejecución diaria del pipeline actualiza automáticamente:
 
-## 📈 Funcionalidades principales
-
-✔ Procesamiento automático de datos  
-✔ Pipeline idempotente (sin duplicación de cargas)  
-✔ Control de calidad de datos  
-✔ Cálculo de KPIs por producto y región  
-✔ Generación de gráficos e insights  
-✔ Dashboard HTML automático  
-✔ Comparación vs ventas del día anterior  
-✔ Integración con presupuesto dinámico  
-
----
-
-## 📊 Presupuesto dinámico
-
-Se implementó un modelo de presupuesto basado en un **promedio móvil de 7 días**, lo que permite:
-
-- Evitar métricas artificiales (100% cumplimiento constante)
-- Generar desvíos realistas
-- Analizar días de sobrecumplimiento y bajo desempeño
-- Mejorar la capacidad de monitoreo operativo
-
----
-
-## 🛡️ Mejora: control de duplicados en histórico
-
-Durante el desarrollo se detectó un problema de duplicación de datos en el histórico.
-
-Se implementó una solución que:
-
-- Reemplaza registros por fecha en lugar de concatenarlos
-- Evita reprocesamientos duplicados
-- Garantiza consistencia del histórico
-- Permite re-ejecución segura del pipeline (idempotencia)
-
-Este ajuste resolvió un caso real de calidad de datos y mejoró la confiabilidad del análisis.
-
----
-
-## 📂 Estructura del proyecto
-
-analisis-ventas-python/
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│
-├── output/
-│   ├── modelo_dashboard.csv
-│   ├── ventas_vs_presupuesto.csv
-│   ├── resumen_presupuesto.csv
-│   ├── charts/
-│   └── reporte.html
-│
-├── src/
-│   ├── update_pipeline.py
-│   ├── generar_presupuesto.py
-│   ├── kpi.py
-│   ├── quality_checks.py
-│   ├── reporting.py
-│   ├── email_report.py
-│   └── logging_setup.py
-│
-├── notebooks/
-│   ├── dashboard_ventas_v3.ipynb
-│   └── analisis_desvios_presupuesto.ipynb
-│
-└── README.md
-
----
-
-## ▶️ Cómo ejecutar el proyecto
-
-Ejecutar el pipeline completo:
-
-```bash
-python src/update_pipeline.py
+```text
+Ventas
+↓
+Presupuesto
+↓
+Gastos
+↓
+Finanzas
+↓
+Cash Flow
+↓
+Caja
+↓
+Forecast
+↓
+P&L
+↓
+Dashboard Comercial
+↓
+Dashboard FP&A
 ```
 
-El proceso incluye:
+---
 
-- Generación automática del presupuesto dinámico
-- Actualización del histórico
-- Cálculo de KPIs
-- Generación de gráficos e insights
-- Creación del dashboard HTML
-```
+## Tecnologías Utilizadas
 
-## 📣 Autor
+- Python
+- Pandas
+- NumPy
+- Chart.js
+- HTML
+- Git
+- GitHub
+- Windows Task Scheduler
 
-**Juan Manuel Cintado**
+---
 
-- 📧 Email: juanmanuel.cint@gmail.com
-- 🔗 LinkedIn: https://www.linkedin.com/in/jmc76/
+## Próximas Mejoras
+
+- Forecast operativo a 30/60/90 días
+- Gráfico de Aging
+- Waterfall de EBITDA
+- Dashboard interactivo vía Power BI
+- Escenarios financieros avanzados
+
+---
+
+## Autor
+
+Juan Manuel Cintado
+
+LinkedIn:
+https://www.linkedin.com/in/jmc76/
 
