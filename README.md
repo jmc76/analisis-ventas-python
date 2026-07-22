@@ -19,8 +19,6 @@ La solución integra analítica comercial, presupuestación, flujo de fondos, fo
 
 ---
 
-## Dashboards
-
 ### Commercial Dashboard
 
 assets/dashboard.png
