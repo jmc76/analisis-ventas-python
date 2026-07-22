@@ -19,6 +19,22 @@ La solución integra analítica comercial, presupuestación, flujo de fondos, fo
 
 ---
 
+## Dashboards
+
+### Commercial Dashboard
+
+assets/dashboard.png
+
+### FP&A Dashboard - Executive Overview
+
+assets/dashboard_fpa_1.png
+
+### FP&A Dashboard - Financial Detail
+
+assets/dashboard_fpa_2.png
+
+---
+
 ## Arquitectura
 
 ```text
