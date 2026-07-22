@@ -13,6 +13,7 @@ from caja import generar_caja
 from forecast import generar_forecast
 from pnl import generar_estado_resultados
 from dashboard_fpa import generar_dashboard
+from gastos import generar_gastos
 
 from quality_checks import (
     validar_no_vacio,
@@ -340,6 +341,16 @@ def main():
 
         logger.info(
             "💰 Ejecutando módulo financiero"
+        )
+        
+        logger.info(
+             "📊 Generando gastos históricos"
+        )
+
+        generar_gastos()
+
+        logger.info(
+            "✅ gastos_historico.csv generado"
         )
 
         generar_finanzas()
