@@ -1,6 +1,18 @@
 import os
 import glob
 import pandas as pd
+from finanzas import generar_resumen_financiero
+from cashflow import generar_flujo_caja
+from caja import generar_caja
+from forecast import generar_forecast
+from pnl import generar_estado_resultados
+from dashboard_fpa import generar_dashboard
+from finanzas import generar_finanzas
+from cashflow import generar_flujo_caja
+from caja import generar_caja
+from forecast import generar_forecast
+from pnl import generar_estado_resultados
+from dashboard_fpa import generar_dashboard
 
 from quality_checks import (
     validar_no_vacio,
@@ -321,6 +333,36 @@ def main():
         res["por_region"].to_excel(writer, sheet_name="KPI_Region", index=True)
         res["pct_sobre_prod"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Prod", index=True)
         res["pct_sobre_reg"].to_frame("pct").to_excel(writer, sheet_name="Pct_Sobre_Prom_Region", index=True)
+
+    # 13) Pipeline Financiero
+
+    try:
+
+        logger.info(
+            "💰 Ejecutando módulo financiero"
+        )
+
+        generar_finanzas()
+
+        generar_flujo_caja()
+
+        generar_caja()
+
+        generar_forecast()
+
+        generar_estado_resultados()
+
+        generar_dashboard()
+
+        logger.info(
+            "✅ Dashboard FP&A actualizado"
+        )
+
+    except Exception as e:
+
+        logger.error(
+            f"❌ Error ejecutando módulo financiero: {e}"
+        )
 
     # 13) fin del pipeline
     logger.info("✅ Pipeline OK: histórico actualizado y reportes generados en output/")
