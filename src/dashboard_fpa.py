@@ -18,6 +18,10 @@ CAJA_PATH = "output/caja_proyectada.csv"
 
 OUT_PATH = "output/dashboard_fpa.html"
 
+FINANCIAMIENTO_PATH = (
+    "output/escenarios_financiamiento.csv"
+)
+
 
 def generar_dashboard():
 
@@ -36,6 +40,20 @@ def generar_dashboard():
     forecast = pd.read_csv(
         FORECAST_PATH
     )
+
+    financiamiento = pd.read_csv(
+        FINANCIAMIENTO_PATH
+    )
+
+    minimo = financiamiento.loc[
+        financiamiento["escenario"]
+        == "Mínimo Técnico"
+    ].iloc[0]
+
+    operativo = financiamiento.loc[
+        financiamiento["escenario"]
+        == "Operativo (30 días)"
+    ].iloc[0]
 
     pnl = pd.read_csv(
         PNL_PATH
@@ -203,7 +221,57 @@ def generar_dashboard():
     saldos_caja_js = json.dumps(
         saldos_caja
     )
-    
+
+    financiamiento_html = (
+        financiamiento.copy()
+    )
+
+    financiamiento_html["prestamo"] = (
+        financiamiento_html["prestamo"]
+        .map(lambda x: f"${x:,.0f}")
+    )
+
+    financiamiento_html["saldo_final"] = (
+        financiamiento_html["saldo_final"]
+        .map(lambda x: f"${x:,.0f}")
+)
+
+    minimo = financiamiento.loc[
+        financiamiento["escenario"]
+        == "Mínimo Técnico"
+    ].iloc[0]
+
+    operativo = financiamiento.loc[
+        financiamiento["escenario"]
+        == "Operativo (30 días)"
+    ].iloc[0]
+
+    insights = [
+
+        "⚠ Caja proyectada final negativa.",
+
+        "⚠ Cash Runway agotado.",
+
+        "✅ EBITDA positivo.",
+
+        "✅ Bad Debt inferior al 1%.",
+
+        "⚠ Escenario optimista continúa con caja negativa.",
+
+        f"✅ El financiamiento mínimo para evitar el quiebre de caja es de "
+        f"${minimo['prestamo']:,.0f}.",
+
+        f"✅ Para cubrir además 30 días de gastos fijos se requieren "
+        f"${operativo['prestamo']:,.0f}."
+
+    ]
+
+    insights_html = ""
+
+    for insight in insights:
+
+        insights_html += f"<li>{insight}</li>"
+
     html = f"""
 
     <html>
@@ -483,19 +551,17 @@ def generar_dashboard():
         {forecast_html.to_html(index=False)}
     </div>
 
+    <h2>Funding Scenarios</h2>
+
+    <div class="table-container">
+        {financiamiento_html.to_html(index=False)}
+    </div>
+
     <h2>Financial Insights</h2>
 
     <ul>
 
-        <li>⚠ Caja proyectada final negativa.</li>
-
-        <li>⚠ Cash Runway agotado.</li>
-
-        <li>✅ EBITDA positivo.</li>
-
-        <li>✅ Bad Debt inferior al 1%.</li>
-
-        <li>⚠ Escenario optimista continúa con caja negativa.</li>
+        {insights_html}
 
     </ul>
 

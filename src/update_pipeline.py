@@ -8,11 +8,6 @@ from forecast import generar_forecast
 from pnl import generar_estado_resultados
 from dashboard_fpa import generar_dashboard
 from finanzas import generar_finanzas
-from cashflow import generar_flujo_caja
-from caja import generar_caja
-from forecast import generar_forecast
-from pnl import generar_estado_resultados
-from dashboard_fpa import generar_dashboard
 from gastos import generar_gastos
 
 from quality_checks import (
@@ -29,6 +24,10 @@ from logging_setup import get_logger
 from reporting import generar_graficas_y_insights
 from email_report import generar_reporte_html
 from generar_presupuesto import generar_presupuesto
+
+from escenarios_financiamiento import (
+    generar_escenarios_financiamiento
+)
 
 RAW_DIR = "data/raw"
 HIST_PATH = "data/processed/ventas_historico.csv"
@@ -360,6 +359,8 @@ def main():
         generar_caja()
 
         generar_forecast()
+
+        generar_escenarios_financiamiento()
 
         generar_estado_resultados()
 
